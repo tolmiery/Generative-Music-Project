@@ -1,0 +1,90 @@
+from PIL import Image, ImageTk
+import math
+
+'''
+This module provides an ImageProcessor class to manage image operations such as loading,
+resizing, checking color formats, and saving images. It also includes functions to calculate
+pixel distances and find the closest color from a predefined set of colors.
+
+''' 
+class ImageProcessor:
+    def __init__(self, image_path=None):
+        self.image = None
+        if image_path:
+            self.load_image(image_path)
+
+    def load_image(self, image_path):
+        self.image = Image.open(image_path)
+        self.image = self.image.convert("RGBA")  # Ensure it's in RGBA format
+
+    def is_grey_scale(self):
+        w, h = self.image.size
+        for j in range(w):
+            for i in range(h):
+                r, g, b, a = self.image.getpixel((j, i))
+                if r != g or g != b or r != b:
+                    return False
+        return True
+
+    def is_rgba(self):
+        if self.image.info.get("transparency", None) is not None:
+            return True
+        extrema = self.image.getextrema()
+        if extrema[3][0] < 255:
+            return True
+        return False
+
+    def resize(self, factor):
+        w, h = self.image.size
+        new_size = math.ceil(w / factor), math.ceil(h / factor)
+        resized_image = self.image.resize(new_size)
+        return resized_image
+
+    def save_image(self, file_path):
+        self.image.save(file_path, optimize=True, quality=50)
+
+    def get_pixel(self, x, y):
+        return self.image.getpixel((x, y))
+
+    def get_size(self):
+        return self.image.size
+
+    def get_image(self):
+        return self.image
+
+def distance(pixel, color):
+    x = pixel[0] - color[0]
+    y = pixel[1] - color[1]
+    z = pixel[2] - color[2]
+    if (x + y + z >= 0): return math.sqrt(math.sqrt(x * x + y * y + z * z))
+    else: return -math.sqrt(math.sqrt(x * x + y * y + z * z))
+
+def find_closest(pixel, colors):
+    maxi = 999999
+    mini = -999999
+    for idx, rgb in colors:
+        d = distance(pixel, rgb)
+        if d < maxi and d > mini:
+            if (d > 0):
+                maxi = d
+                mini = -d
+            else:
+                maxi = -d
+                mini = d
+            color = idx
+    return color
+
+def find_color(pixel, img, blackwhite, colors):
+    if not img.is_grey_scale():
+        if abs(pixel[0] - pixel[1]) < 10 and abs(pixel[0] - pixel[2]) < 10 and abs(pixel[2] - pixel[1]) < 10:
+            bw = (pixel[0] + pixel[1] + pixel[2]) / (3 * 255)
+            if bw >= 0.5:
+                return 1
+            else:
+                return 0
+        return find_closest(pixel, colors)
+
+    else:
+        for i in range(len(blackwhite)):
+            if pixel[0] < blackwhite[i][1]:
+                return i
