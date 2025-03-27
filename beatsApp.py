@@ -30,9 +30,9 @@ class RGBeatsAPP:
 
         self.py_to_pd_OscSender = SimpleUDPClient('127.0.0.1', int(sys.argv[1]))
 
-        self._setup_gui()
+        self.setup_gui()
 
-    def _setup_gui(self):
+    def setup_gui(self):
         # Setup all frames and components here
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")

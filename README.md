@@ -10,19 +10,18 @@ Greenpoly: plays for “blue” input. Makes use of multiplicative rect~ and cyc
 
 # Python Overview
 
-Consists of a singular main.py file which controls all processes. It uses the Python Image Library and python-osc module to assist with this. It first reads in image information 
-and program parameters through a GUI, and then takes this information to begin establishing behaviors for the overall process. It compresses our image as necessary 
-for processing, defines our colors and octaves, sends general data to Max over OSC, and then begins to process our image pixel-by-pixel. For each pixel it performs a series of 
-operations to determine its color, amplitude, panning, and offset from its associated color. It then sends this pixel info to Max using OSC, and moves on to the next pixel 
+Consists of 3 Python files: one to handle image processing, one to handle our GUI and our UDP interactions, and a main file which controls all processes. We use the Python Image Library and python-osc module to assist with this. We read in image information 
+and program parameters through our GUI, and then take this information to begin establishing behaviors for the overall process. We compress our image as necessary 
+for processing, define our colors and octaves, send general data to Max over OSC, and then begin to process our image pixel-by-pixel. For each pixel we perform a series of 
+operations to determine its color, amplitude, panning, and offset from its associated color. We then send this pixel info to Max using OSC, and move on to the next pixel 
 following a predefined delay. All OSC messages sent are additionally printed to the terminal. When a pixel is received by Max, we immediately begin to hear its output. Following 
 along in the Python terminal output, we thus see which pixel is generating which signal.
 
 # How to Run The Project
 
-To activate the project and generate a composition, run the Python code through the command line while the Max file entitled main is open and all poly 
-files are in its same directory. 
+To activate the project and generate a composition, first make sure that Max/MSP is installed, then run the Python code through the command line.
 The command line input takes the following format: 
 
-`python3 main.py <ip_address> <port>`
+`python3 main.py <port>`
 
 From here, the GUI window is opened.
