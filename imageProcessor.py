@@ -88,3 +88,25 @@ def find_color(pixel, img, blackwhite, colors):
         for i in range(len(blackwhite)):
             if pixel[0] < blackwhite[i][1]:
                 return i
+
+def colorSet(colorNum):
+    if colorNum == 2:
+        colors = [(0, (0, 0, 0)),
+                    (1, (255, 255, 255))]
+
+    elif colorNum == 5:
+        colors = [(0, (0, 0, 0)),
+                    (1, (255, 255, 255)),
+                    (2, (0, 255, 0)),
+                    (3, (0, 0, 255)),
+                    (4, (255, 0, 0))]
+
+    elif colorNum == 8:
+        colors = [(0, (0, 0, 0)),
+                    (1, (255, 255, 255)),
+                    (2, (0, 255, 0)),
+                    (3, (0, 0, 255)),
+                    (4, (255, 0, 0)),
+                    (5, (255, 255, 0)),
+                    (7, (0, 255, 255)),
+                    (7, (255, 0, 255))]
