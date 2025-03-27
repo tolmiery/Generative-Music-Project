@@ -199,14 +199,8 @@ class RGBeatsAPP:
             self.imag.configure(image=pic)
 
     def play(self):
-        colors = colorSet(self.radio_var.get())
-
-        colors_bw = [None] * int(self.radio_var.get())
-        colors_bw[0] = (0, 0, 0)
-        for i in range(int(self.radio_var.get())):
-            temp = int(255 * (float(i) / int(self.radio_var.get())))
-            if (i + 1 < len(colors_bw)): colors_bw[i + 1] = (temp, temp, temp)
-        colors_bw[int(self.radio_var.get()) - 1] = (255, 255, 255)
+        colors = colorSet(int(self.radio_var.get()))
+        colors_bw = bwSet(int(self.radio_var.get()))
 
         image_processor = ImageProcessor('compressed_image.png')
         w, h = image_processor.get_size()

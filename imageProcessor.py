@@ -110,3 +110,13 @@ def colorSet(colorNum):
                     (5, (255, 255, 0)),
                     (7, (0, 255, 255)),
                     (7, (255, 0, 255))]
+    return colors
+
+def bwSet(colorNum):
+    colors_bw = [None] * int(colorNum)
+    colors_bw[0] = (0, 0, 0)
+    for i in range(int(colorNum)):
+        temp = int(255 * (float(i) / int(colorNum)))
+        if (i + 1 < len(colors_bw)): colors_bw[i + 1] = (temp, temp, temp)
+    colors_bw[int(colorNum) - 1] = (255, 255, 255)
+    return colors_bw
