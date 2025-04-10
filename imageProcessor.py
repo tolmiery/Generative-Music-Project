@@ -10,12 +10,16 @@ pixel distances and find the closest color from a predefined set of colors.
 class ImageProcessor:
     def __init__(self, image_path=None):
         self.image = None
+        self.current_height = 0
+        self.current_width = 0
         if image_path:
             self.load_image(image_path)
 
-    def load_image(self, image_path):
+    def load_image(self, image_path, current_height=0, current_width=0):
         self.image = Image.open(image_path)
         self.image = self.image.convert("RGBA")  # Ensure it's in RGBA format
+        self.current_height = current_height
+        self.current_width = current_width
 
     # Check if the image is grayscale
     # A grayscale image has equal values for R, G, and B for all pixels
@@ -60,6 +64,18 @@ class ImageProcessor:
     # Get the image object itself
     def get_image(self):
         return self.image
+    
+    def get_current_height(self):
+        return self.current_height
+    
+    def get_current_width(self):
+        return self.current_width
+    
+    def set_current_height(self, height):
+        self.current_height = height
+    
+    def set_current_width(self, width):
+        self.current_width = width
     
 ## Calculate the distance between a pixel and a color
 # The distance is computed using a modified Euclidean distance formula

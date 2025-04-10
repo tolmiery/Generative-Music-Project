@@ -29,6 +29,7 @@ class RGBeatsAPP:
         self.del_button_var.set(value=0.1)
 
         self.py_to_pd_OscSender = SimpleUDPClient('127.0.0.1', int(sys.argv[1]))
+        self.running = False # Flag to indicate if messages are currently being sent
 
         self.setup_gui()
 
@@ -209,6 +210,7 @@ class RGBeatsAPP:
 
     # Function to play the image
     def play(self):
+        self.running = True
         colors = colorSet(int(self.radio_var.get()))
         colors_bw = bwSet(int(self.radio_var.get()))
 
@@ -227,23 +229,18 @@ class RGBeatsAPP:
         self.py_to_pd_OscSender.send_message("/octave", notes)
 
         #we iterate through our image, pixel by pixel, and send the processed data to Max
-        i = 0
-        while (i < h):
-            j = 0
-            while (j < w):
+        while (image_processor.get_current_height() < h) and self.running:
+            while (image_processor.get_current_width() < w) and self.running:
                 self.root.update()
-                notes = []
-                for i in range(1, len(notes_base)):
-                    notes.append(int(notes_base[i] * 2 ** (self.oct_button_var.get())))
-                self.py_to_pd_OscSender.send_message("/octave", notes)
                 if (self.order_var.get() != 0):
-                    print("Pixel with RGBA values {} at coordinate {}".format(image_processor.get_pixel(j, i), (j, i)))
-                    pan = 2 * (float(j) / w) - 1
-                    amp = int(image_processor.get_pixel(j, i)[3] * 157 / float(255))
-                    color = find_color(image_processor.get_pixel(j, i), image_processor, colors_bw, colors)
-                    if (not image_processor.is_grey_scale()): offset = distance(image_processor.get_pixel(j, i), colors[color][1])
+                    print("Pixel with RGBA values {} at coordinate {}".format(image_processor.get_pixel(image_processor.get_current_width(), image_processor.get_current_height()), 
+                                                                              (image_processor.get_current_width(), image_processor.get_current_height())))
+                    pan = 2 * (float(image_processor.get_current_width()) / w) - 1
+                    amp = int(image_processor.get_pixel(image_processor.get_current_width(), image_processor.get_current_height())[3] * 157 / float(255))
+                    color = find_color(image_processor.get_pixel(image_processor.get_current_width(), image_processor.get_current_height()), image_processor, colors_bw, colors)
+                    if (not image_processor.is_grey_scale()): offset = distance(image_processor.get_pixel(image_processor.get_current_width(), image_processor.get_current_height()), colors[color][1])
                     else:
-                        offset = distance(image_processor.get_pixel(j, i), colors_bw[color])
+                        offset = distance(image_processor.get_pixel(image_processor.get_current_width(), image_processor.get_current_height()), colors_bw[color])
                 else:
                     k = random.randrange(0, h)
                     l = random.randrange(0, w)
@@ -260,11 +257,13 @@ class RGBeatsAPP:
                 self.py_to_pd_OscSender.send_message("/note/amp", amp)
                 self.py_to_pd_OscSender.send_message("/note/color", color)
                 self.py_to_pd_OscSender.send_message("/note/offset", offset)
-                j += 1
+                image_processor.set_current_width(image_processor.get_current_width() + 1)
                 time.sleep(self.del_button_var.get())
-            i += 1
+            image_processor.set_current_width(0)
+            image_processor.set_current_height(image_processor.get_current_height() + 1)
         self.stop()
 
     def stop(self):
         print(f"Sending OSC | /on/0")
         self.py_to_pd_OscSender.send_message("/on", 0)
+        self.running = False
