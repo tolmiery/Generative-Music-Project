@@ -15,6 +15,9 @@ def setup():
     script_dir = os.path.dirname(os.path.realpath(__file__))
     maxpat_file = os.path.join(script_dir, "main.maxpat")
 
+
+#this is a temporary workaround
+#in max, will create a standalone so that the project can be run without max installed
     if os.path.exists(maxpat_file):
         print(f"Opening {maxpat_file}")
         try:

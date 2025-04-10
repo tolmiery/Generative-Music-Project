@@ -33,7 +33,12 @@ class RGBeatsAPP:
         self.setup_gui()
 
     def setup_gui(self):
-        # Setup all frames and components here
+        self.set_frames()
+        self.set_components()
+        self.pack_components()
+
+    # Setup all frames and components here
+    def set_frames(self):
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")
 
@@ -81,7 +86,8 @@ class RGBeatsAPP:
         self.color_label = customtkinter.CTkLabel(self.col_frame, text="Select a color count: ")
         self.color_label.configure(fg_color="transparent")
 
-        # Components and Buttons Initialization
+    # Components and Buttons Initialization
+    def set_components(self):
         self.color_1 = customtkinter.CTkRadioButton(master=self.col_frame, text="2", variable=self.radio_var, value=2)
         self.color_2 = customtkinter.CTkRadioButton(master=self.col_frame, text="5", variable=self.radio_var, value=5)
         self.color_3 = customtkinter.CTkRadioButton(master=self.col_frame, text="8", variable=self.radio_var, value=8)
@@ -122,8 +128,9 @@ class RGBeatsAPP:
         self.img = Image.open('compressed_image.png')
         w, h = self.img.size
         self.imag.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.6 * (h / w))
-
-        # Layout packing
+    
+    # Pack all components into their respective frames
+    def pack_components(self):
         self.color_label.pack(side="top", padx=20, pady=10)
         self.order_label.pack(side="top", padx=20, pady=10)
         self.color_1.pack(side="top", padx=20, pady=10)
@@ -152,7 +159,11 @@ class RGBeatsAPP:
         self.range_max.pack(side="top", padx=20, pady=20)
         self.min_val.pack(side="top", padx=20, pady=10)
         self.max_val.pack(side="top", padx=20, pady=10)
+    
+    # Event Handlers
+    # These functions are called when the user interacts with the GUI
 
+    # Function to handle image compression event
     def comp_event(self, variable):
         image_processor = ImageProcessor('og.png')
         resized_image = image_processor.resize(self.comp_var.get())
@@ -160,6 +171,7 @@ class RGBeatsAPP:
         pic = customtkinter.CTkImage(resized_image, size=image_processor.get_size())
         self.imag.configure(image=pic)
 
+    # Function to handle amplitude switch event
     def amp_switch_event(self):
         if self.amp_switch_var.get() == 1:
             self.amp_switch.configure(text=" Randomized Amplitudes Enabled")
@@ -174,6 +186,7 @@ class RGBeatsAPP:
             self.min_label.configure(text_color="#4A4D50")
             self.max_label.configure(text_color="#4A4D50")
 
+    # Function to handle range slider event
     def range_event(self, value):
         if self.range_slider_max_var.get() <= self.range_slider_min_var.get():
             self.range_slider_max_var.set(self.range_slider_min_var.get() + 1)
@@ -181,6 +194,7 @@ class RGBeatsAPP:
         self.min_val.configure(text=str(self.range_slider_min_var.get()))
         self.max_val.configure(text=str(self.range_slider_max_var.get()))
 
+    # Function to handle image upload
     def imageUploader(self):
         fileTypes = [("Image files", "*.png;*.jpg;*.jpeg")]
         path = tkinter.filedialog.askopenfilename(filetypes=fileTypes)
@@ -193,6 +207,7 @@ class RGBeatsAPP:
             pic = customtkinter.CTkImage(resized_image, size=image_processor.get_size())
             self.imag.configure(image=pic)
 
+    # Function to play the image
     def play(self):
         colors = colorSet(int(self.radio_var.get()))
         colors_bw = bwSet(int(self.radio_var.get()))
@@ -202,18 +217,25 @@ class RGBeatsAPP:
         print(f"Sending OSC | /on/1")
         self.py_to_pd_OscSender.send_message("/on", 1)
         print(f"Sending OSC | /delay/{self.del_button_var.get()} | /octave/{self.oct_button_var.get()}")
-        notes = [1, 16.35, 18.35, 20.6, 21.83, 24.5, 27.5, 30.87, 32.7]
-        note_str = "1 "
-        for i in range(1, len(notes)):
-            notes[i] = int(notes[i] * 2 ** (self.oct_button_var.get()))
+        #after estabishing initial setup, send octave information to Max patch
+        #this is first octave Hz value, used to calculate all other Hz values in different octaves
+        notes_base = [1, 16.35, 18.35, 20.6, 21.83, 24.5, 27.5, 30.87, 32.7]
+        notes = []
+        for i in range(1, len(notes_base)):
+            notes.append(int(notes_base[i] * 2 ** (self.oct_button_var.get())))
         self.py_to_pd_OscSender.send_message("/delay", self.del_button_var.get())
         self.py_to_pd_OscSender.send_message("/octave", notes)
 
+        #we iterate through our image, pixel by pixel, and send the processed data to Max
         i = 0
         while (i < h):
             j = 0
             while (j < w):
                 self.root.update()
+                notes = []
+                for i in range(1, len(notes_base)):
+                    notes.append(int(notes_base[i] * 2 ** (self.oct_button_var.get())))
+                self.py_to_pd_OscSender.send_message("/octave", notes)
                 if (self.order_var.get() != 0):
                     print("Pixel with RGBA values {} at coordinate {}".format(image_processor.get_pixel(j, i), (j, i)))
                     pan = 2 * (float(j) / w) - 1
@@ -232,6 +254,7 @@ class RGBeatsAPP:
                     if (not image_processor.is_grey_scale()): offset = distance(image_processor.get_pixel(l, k), colors[color][1])
                     else: offset = distance(image_processor.get_pixel(l, k), colors_bw[color])
                 if (self.range_slider_max_var.get() != -1): amp = int(random.randrange(self.range_slider_min_var.get(), self.range_slider_max_var.get()))
+                #send OSC messages to Max patch
                 print(f"Sending OSC | /note/amp/{amp} | /note/pan/{pan} | /note/color/{color} | /note/offset/{offset}")
                 self.py_to_pd_OscSender.send_message("/note/pan", pan)
                 self.py_to_pd_OscSender.send_message("/note/amp", amp)

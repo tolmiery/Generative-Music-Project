@@ -19,7 +19,7 @@ along in the Python terminal output, we thus see which pixel is generating which
 
 # How to Run The Project
 
-To activate the project and generate a composition, first make sure that Max/MSP is installed, then run the Python code through the command line.
+To activate the project and generate a composition, first make sure that Max/MSP is installed, then run the Python code through the command line. A GUI willmopen, followed by a Max/MSP window that can be minimized. Future versions will create a standalone for our Max project so that Max need not be installed.
 The command line input takes the following format: 
 
 `python3 main.py <port>`

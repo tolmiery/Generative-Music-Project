@@ -18,7 +18,7 @@ class ImageProcessor:
         self.image = self.image.convert("RGBA")  # Ensure it's in RGBA format
 
     # Check if the image is grayscale
-    # A grayscale image has equal values for R, G, and B channels
+    # A grayscale image has equal values for R, G, and B for all pixels
     def is_grey_scale(self):
         w, h = self.image.size
         for j in range(w):
@@ -28,8 +28,7 @@ class ImageProcessor:
                     return False
         return True
 
-    # Check if the image has an alpha channel (transparency) or if any pixel is not fully opaque
-    # An image is considered RGBA if it has transparency or any pixel has an alpha value < 255
+    # Check if the image has an alpha value (transparency) or if any pixel is not fully opaque
     def is_rgba(self):
         if self.image.info.get("transparency", None) is not None:
             return True
