@@ -14,14 +14,13 @@ Consists of 3 Python files: one to handle image processing, one to handle our GU
 and program parameters through our GUI, and then take this information to begin establishing behaviors for the overall process. We compress our image as necessary 
 for processing, define our colors and octaves, send general data to Max over OSC, and then begin to process our image pixel-by-pixel. For each pixel we perform a series of 
 operations to determine its color, amplitude, panning, and offset from its associated color. We then send this pixel info to Max using OSC, and move on to the next pixel 
-following a predefined delay. All OSC messages sent are additionally printed to the terminal. When a pixel is received by Max, we immediately begin to hear its output. Following 
-along in the Python terminal output, we thus see which pixel is generating which signal.
+following a predefined delay. When a pixel is received by Max, we immediately begin to hear its output.
 
 # How to Run The Project
 
-To activate the project and generate a composition, first make sure that Max/MSP is installed, then run the Python code through the command line. A GUI willmopen, followed by a Max/MSP window that can be minimized. Future versions will create a standalone for our Max project so that Max need not be installed.
+To activate the project and generate a composition, first make sure that Max/MSP is installed, then run the Python code through the command line. A GUI will open, followed by a Max/MSP window that can be minimized. Future versions will create a standalone for our Max project so that Max need not be installed.
 The command line input takes the following format: 
 
 `python3 main.py <port>`
 
-From here, the GUI window is opened.
+From here, the GUI window is opened. To determine the port to use, check your Max/MSP settings.
