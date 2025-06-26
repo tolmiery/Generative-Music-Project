@@ -119,7 +119,7 @@ def find_color(pixel, img, blackwhite, colors):
                 return i
 
 ## Define a color set based on the number of colors specified
-def colorSet(colorNum):
+def color_set(colorNum):
     if colorNum == 2:
         colors = [(0, (0, 0, 0)),
                     (1, (255, 255, 255))]
@@ -143,7 +143,7 @@ def colorSet(colorNum):
     return colors
 
 # Define a black and white color set based on the number of colors specified
-def bwSet(colorNum):
+def bw_set(colorNum):
     colors_bw = [None] * int(colorNum)
     colors_bw[0] = (0, 0, 0)
     for i in range(int(colorNum)):

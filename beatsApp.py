@@ -5,6 +5,8 @@ import customtkinter
 import sys
 import random
 import time
+import os
+import atexit
 from imageProcessor import *
 
 class RGBeatsAPP:
@@ -14,24 +16,20 @@ class RGBeatsAPP:
         self.root.geometry('1200x1000')
 
         # Initial Variables
-        self.radio_var = tkinter.IntVar(0)
-        self.radio_var.set(2)
-        self.order_var = tkinter.IntVar(0)
-        self.comp_var = tkinter.IntVar(0)
-        self.comp_var.set(value=1)
-        self.amp_switch_var = tkinter.IntVar(0)
-        self.range_slider_min_var = tkinter.IntVar(0)
-        self.range_slider_max_var = tkinter.IntVar(0)
-        self.range_slider_max_var.set(155)
-        self.oct_button_var = tkinter.IntVar(0)
-        self.oct_button_var.set(value=1)
-        self.del_button_var = tkinter.DoubleVar(0)
-        self.del_button_var.set(value=0.1)
+        self.radio_var = tkinter.IntVar(value=2)
+        self.order_var = tkinter.IntVar(value=0)
+        self.comp_var = tkinter.IntVar(value=1)
+        self.amp_switch_var = tkinter.IntVar(value=0)
+        self.range_slider_min_var = tkinter.IntVar(value=0)
+        self.range_slider_max_var = tkinter.IntVar(value=155)
+        self.oct_button_var = tkinter.IntVar(value=1)
+        self.del_button_var = tkinter.DoubleVar(value=0.1)
 
         self.py_to_pd_OscSender = SimpleUDPClient('127.0.0.1', int(sys.argv[1]))
         self.running = False # Flag to indicate if messages are currently being sent
 
         self.setup_gui()
+        self.register_exit_handler()
 
     def setup_gui(self):
         self.set_frames()
@@ -89,16 +87,16 @@ class RGBeatsAPP:
 
     # Components and Buttons Initialization
     def set_components(self):
-        self.color_1 = customtkinter.CTkRadioButton(master=self.col_frame, text="2", variable=self.radio_var, value=2)
-        self.color_2 = customtkinter.CTkRadioButton(master=self.col_frame, text="5", variable=self.radio_var, value=5)
-        self.color_3 = customtkinter.CTkRadioButton(master=self.col_frame, text="8", variable=self.radio_var, value=8)
+        self.color_radios = [customtkinter.CTkRadioButton(master=self.col_frame, text="2", variable=self.radio_var, value=2), 
+                             customtkinter.CTkRadioButton(master=self.col_frame, text="5", variable=self.radio_var, value=5),
+                             customtkinter.CTkRadioButton(master=self.col_frame, text="8", variable=self.radio_var, value=8)]
 
         self.order_label = customtkinter.CTkLabel(self.read_frame, text="Select a read order: ")
         self.order_label.configure(fg_color="transparent")
 
-        self.order_1 = customtkinter.CTkRadioButton(master=self.read_frame, text="Random", variable=self.order_var, value=0)
-        self.order_2 = customtkinter.CTkRadioButton(master=self.read_frame, text="Left to Right", variable=self.order_var, value=1)
-        self.order_3 = customtkinter.CTkRadioButton(master=self.read_frame, text="Smooth", variable=self.order_var, value=-1)
+        self.order_radios = [customtkinter.CTkRadioButton(master=self.read_frame, text="Random", variable=self.order_var, value=0),
+                             customtkinter.CTkRadioButton(master=self.read_frame, text="Left to Right", variable=self.order_var, value=1),
+                             customtkinter.CTkRadioButton(master=self.read_frame, text="Smooth", variable=self.order_var, value=-1)]
 
         self.amp_switch = customtkinter.CTkSwitch(self.amp_frame, text="Randomized Amplitudes Enabled", command=self.amp_switch_event, variable=self.amp_switch_var, onvalue=1, offvalue=0)
 
@@ -119,27 +117,19 @@ class RGBeatsAPP:
         self.del_button = customtkinter.CTkSegmentedButton(self.del_frame, values=[0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 4], variable=self.del_button_var)
         self.imag = customtkinter.CTkLabel(self.img_frame, text=" ", fg_color="transparent")
 
-        self.uploadButton = customtkinter.CTkButton(self.play_pause_frame, text="Upload Image", command=self.imageUploader)
-        self.uploadButton.place(relx=0.025, rely=0.15, relwidth=0.3)
-        self.playButton = customtkinter.CTkButton(self.play_pause_frame, text="Play", command=self.play)
-        self.playButton.place(relx=0.35, rely=0.15, relwidth=0.3)
-        self.stopButton = customtkinter.CTkButton(self.play_pause_frame, text="Stop", command=self.stop)
-        self.stopButton.place(relx=0.675, rely=0.15, relwidth=0.3)
-
-        self.img = Image.open('compressed_image.png')
-        w, h = self.img.size
-        self.imag.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.6 * (h / w))
+        self.upload_button = customtkinter.CTkButton(self.play_pause_frame, text="Upload Image", command=self.image_uploader)
+        self.upload_button.place(relx=0.025, rely=0.15, relwidth=0.45)
+        self.play_button = customtkinter.CTkButton(self.play_pause_frame, text="Play", command=self.play)
+        self.play_button.place(relx=0.525, rely=0.15, relwidth=0.45)
     
     # Pack all components into their respective frames
     def pack_components(self):
-        self.color_label.pack(side="top", padx=20, pady=10)
-        self.order_label.pack(side="top", padx=20, pady=10)
-        self.color_1.pack(side="top", padx=20, pady=10)
-        self.order_1.pack(side="top", padx=20, pady=10)
-        self.color_2.pack(side="top", padx=20, pady=10)
-        self.order_2.pack(side="top", padx=20, pady=10)
-        self.color_3.pack(side="top", padx=20, pady=10)
-        self.order_3.pack(side="top", padx=20, pady=10)
+        self.color_label.pack(padx=20, pady=10)
+        for radio in self.color_radios:
+            radio.pack(padx=20, pady=5)
+        self.order_label.pack(padx=20, pady=10)
+        for radio in self.order_radios:
+            radio.pack(padx=20, pady=5)
         self.col_frame.pack(side="left", padx=20, pady=10)
         self.read_frame.pack(side="left", padx=20, pady=10)
 
@@ -165,12 +155,15 @@ class RGBeatsAPP:
     # These functions are called when the user interacts with the GUI
 
     # Function to handle image compression event
-    def comp_event(self, variable):
-        image_processor = ImageProcessor('og.png')
+    def comp_event(self, variable, path='original.png'):
+        image_processor = ImageProcessor(path)
         resized_image = image_processor.resize(self.comp_var.get())
         resized_image.save('compressed_image.png', optimize=True, quality=50)
         pic = customtkinter.CTkImage(resized_image, size=image_processor.get_size())
         self.imag.configure(image=pic)
+        self.img = Image.open('compressed_image.png')
+        w, h = self.img.size
+        self.imag.place(relx=0.2, rely=0.2, relwidth=0.6, relheight=0.6 * (h / w))
 
     # Function to handle amplitude switch event
     def amp_switch_event(self):
@@ -196,23 +189,24 @@ class RGBeatsAPP:
         self.max_val.configure(text=str(self.range_slider_max_var.get()))
 
     # Function to handle image upload
-    def imageUploader(self):
+    def image_uploader(self):
         fileTypes = [("Image files", "*.png;*.jpg;*.jpeg")]
         path = tkinter.filedialog.askopenfilename(filetypes=fileTypes)
 
         if len(path):
             image_processor = ImageProcessor(path)
-            image_processor.save_image('og.png')
-            resized_image = image_processor.resize(self.comp_var.get())
-            resized_image.save('compressed_image.png', optimize=True, quality=50)
-            pic = customtkinter.CTkImage(resized_image, size=image_processor.get_size())
-            self.imag.configure(image=pic)
-
+            image_processor.save_image('original.png')
+            self.comp_event(variable=self.comp_var)
+            
     # Function to play the image
     def play(self):
-        self.running = True
-        colors = colorSet(int(self.radio_var.get()))
-        colors_bw = bwSet(int(self.radio_var.get()))
+        if not self.running:
+            self.running = True
+            self.play_button.configure(text="Stop")
+        else:
+            self.stop()
+        colors = color_set(int(self.radio_var.get()))
+        colors_bw = bw_set(int(self.radio_var.get()))
 
         image_processor = ImageProcessor('compressed_image.png')
         w, h = image_processor.get_size()
@@ -263,7 +257,28 @@ class RGBeatsAPP:
             image_processor.set_current_height(image_processor.get_current_height() + 1)
         self.stop()
 
+    # Function to stop playback
+    # This function sends a stop message to the Max patch and updates the play button text
     def stop(self):
         print(f"Sending OSC | /on/0")
         self.py_to_pd_OscSender.send_message("/on", 0)
         self.running = False
+        try:
+            self.play_button.configure(text="Play")
+        except Exception as e:
+            print(f"Could not update GUI (probably destroyed): {e}")
+
+    # Function to remove images on exit
+    def remove_image():
+        if os.path.exists("compressed_image.png"):
+            os.remove("compressed_image.png")
+        if os.path.exists("original.png"):
+            os.remove("original.png")
+
+    # Register exit handler to stop playback
+    def register_exit_handler(self):
+        def on_exit():
+            if self.running:
+                self.stop()         
+        atexit.register(on_exit)
+    atexit.register(remove_image)
