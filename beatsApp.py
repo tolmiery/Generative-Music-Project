@@ -82,11 +82,11 @@ class RGBeatsAPP:
         self.img_frame.place(relx=0.113, rely=0.125)
         self.img_frame.pack_propagate(0)
 
+    # Components and Buttons Initialization
+    def set_components(self):
         self.color_label = customtkinter.CTkLabel(self.col_frame, text="Select a color count: ")
         self.color_label.configure(fg_color="transparent")
 
-    # Components and Buttons Initialization
-    def set_components(self):
         self.color_radios = [customtkinter.CTkRadioButton(master=self.col_frame, text="2", variable=self.radio_var, value=2), 
                              customtkinter.CTkRadioButton(master=self.col_frame, text="5", variable=self.radio_var, value=5),
                              customtkinter.CTkRadioButton(master=self.col_frame, text="8", variable=self.radio_var, value=8)]
@@ -281,4 +281,5 @@ class RGBeatsAPP:
             if self.running:
                 self.stop()         
         atexit.register(on_exit)
+        
     atexit.register(remove_image)
